@@ -37,10 +37,10 @@ function getCount(ctx,next) {
     let res;
     if (method == "GET") {
         res = await internalCallGet(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
-        ctx.body = res.data;
+        ctx.body = res;
     } else if (method == "POST") {
         res = await internalCallPost(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
-        ctx.body = res.data;
+        ctx.body = res;
     }
     ctx.body = util.format("err method: %s", method);
 }
