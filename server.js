@@ -34,15 +34,15 @@ function getCount(ctx,next) {
     let value2 = headers["x-service-value2"]
     let uri = headers["x-service-uri"]
     let toServiceID = headers["x-service-id"];
-    let res;
     if (method == "GET") {
-        res = await internalCallGet(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
+        let res = await internalCallGet(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
         ctx.body = res;
     } else if (method == "POST") {
-        res = await internalCallPost(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
+        let res = await internalCallPost(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
         ctx.body = res;
+    } else {
+        ctx.body = util.format("err method: %s", method);
     }
-    ctx.body = util.format("err method: %s", method);
 }
 
 async function internalCallGet(uri, toServiceID, paramMap, headers) {
