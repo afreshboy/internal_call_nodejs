@@ -5,7 +5,8 @@ const bodyParser = require('koa-bodyparser')
 var app = new koa();
 const axios = require("axios");
 const router = new Router()              // 实例化一个路由
-const util = require('util')
+const util = require('util');
+const { error } = require('console');
 
 function getCount(ctx,next) {
     console.log(ctx.request.headers);
@@ -35,14 +36,47 @@ function getCount(ctx,next) {
     let uri = headers["x-service-uri"]
     let toServiceID = headers["x-service-id"];
     if (method == "GET") {
-        let res = await internalCallGet(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
-        ctx.body = res;
+        try {
+            let res = await internalCallGet(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"})
+            console.log(res);
+            ctx.body = res;
+        } catch(err) {
+            console.log(err);
+            ctx.status = 500
+            ctx.body = err
+        }
     } else if (method == "POST") {
-        let res = await internalCallPost(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"});
-        ctx.body = res;
+        try {
+            let res = await internalCallPost(uri, toServiceID, {"num1": value1, "num2": value2}, {"TEST-HEADER": "test-header"})
+            console.log(res);
+            ctx.body = res;
+        } catch(err) {
+            console.log(err);
+            ctx.status = 500
+            ctx.body = err
+        }
     } else {
+        ctx.status = 403
         ctx.body = util.format("err method: %s", method);
     }
+    // let res = await internalCallGet1();
+    // console.log(res);
+    // ctx.body = res;
+
+}
+
+async function internalCallGet1() {
+    let url = "http://localhost:8000/api/v1/get_count?num1=2&num2=3";
+
+    try {
+        let res = await axios.get(url);
+        console.log(res);
+        return res.data;
+    } catch(err) {
+        console.log(err);
+        throw err
+    }
+   
 }
 
 async function internalCallGet(uri, toServiceID, paramMap, headers) {
@@ -51,9 +85,17 @@ async function internalCallGet(uri, toServiceID, paramMap, headers) {
     let reqInstance = axios.create({
         headers: headers
     })
-    let res = await reqInstance.get(url, {"params": paramMap});
-    console.log(res);
-    return res.data;
+    try {
+        let res = await reqInstance.get(url, {"params": paramMap});
+        console.log(res);
+        if (!(res.status >= 200 && res.status < 300)) {
+            throw new Error(util.format("err statuscode: %d", res.status));
+        }
+        return res.data;
+    } catch(err) {
+        console.log(err);
+        throw err;
+    }
 }
 
 async function internalCallPost(uri, toServiceID, body, headers) {
@@ -62,7 +104,13 @@ async function internalCallPost(uri, toServiceID, body, headers) {
     let reqInstance = axios.create({
         headers: headers
     })
-    let res = await reqInstance.post(url, body);
+    let res = await reqInstance.post(url, body).catch((err) => {
+        console.log(err);
+        throw err;
+    });
+    if (!(res.status >= 200 && res.status < 300)) {
+        throw new Error(util.format("err statuscode: %d", res.status))
+    }
     console.log(res);
     return res.data;
 }
